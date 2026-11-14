@@ -1,0 +1,17 @@
+// voltexa-api - typed service contracts for VoltexaStudios feature plugins.
+// Interfaces and data carriers only: no implementation classes, no reflection.
+// Feature plugins depend on this artifact at compile time and resolve the
+// implementations through the Bukkit Services API at runtime.
+
+dependencies {
+    // Contract types reference Bukkit config types; the server API is not
+    // bundled - feature plugins already compile against paper-api.
+    compileOnly paperApi
+    testImplementation paperApi
+}
+
+jar {
+    archiveBaseName = 'voltexa-api'
+    // Compile-time contract artifact: exactly voltexa-api.jar.
+    archiveVersion = ''
+}
