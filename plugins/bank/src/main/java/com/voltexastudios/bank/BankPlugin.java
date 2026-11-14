@@ -1,5 +1,6 @@
 package com.voltexastudios.bank;
 
+import com.voltexastudios.bank.bridge.VoltexaBridge;
 import com.voltexastudios.voltexa.api.VoltexaAPI;
 import java.sql.SQLException;
 import org.bukkit.command.PluginCommand;
@@ -10,10 +11,12 @@ import org.bukkit.plugin.java.JavaPlugin;
  * VoltexaStudios bank plugin (v1). Ships the bank data model (versioned SQL
  * migrations in {@code resources/migrations}, applied through the core migration
  * runner) and the {@code /bank} command: accounts, deposit/withdraw, and
- * {@code /bank balance}. Declares {@code depend: [Voltexa]} and compiles
- * against {@code voltexa-api}; it ships no duplicate shared code and never
- * touches the JDBC driver, the database URL, or the pool directly — all
- * connections come through the core's {@code VoltexaAPI}.
+ * {@code /bank balance}. Declares {@code depend: [Voltexa]} and bundles the
+ * {@code voltexa-api} contract; the core's service implementation is resolved
+ * through {@link VoltexaBridge} (Bukkit isolates plugin classloaders, so the
+ * shared contract must be translated across them). Bank never touches the JDBC
+ * driver, the database URL, or the pool directly — all connections come
+ * through the core's {@code VoltexaAPI}.
  */
 public final class BankPlugin extends JavaPlugin {
 
@@ -24,7 +27,12 @@ public final class BankPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        api = getServer().getServicesManager().load(VoltexaAPI.class);
+        // Resolve the core's service through the classloader bridge: Bank's
+        // copy of the contract is a different Class object from the core's
+        // (Bukkit isolates plugin classloaders), so a direct
+        // ServicesManager.load() with Bank's VoltexaAPI.class would not match
+        // the core's registration.
+        api = VoltexaBridge.resolve(this);
         if (api == null) {
             getLogger().severe("VoltexaAPI service not found - the Voltexa core must be enabled "
                     + "before Bank (plugin.yml declares depend: [Voltexa]).");

@@ -27,6 +27,34 @@ Format: one section per release, newest first. Entries grouped as
 - Version `0.1.0` → `2026.46` (the `year.week.fix` scheme); the artifact is
   now `bank.jar` (matching the `voltexa.jar` convention).
 
+## 2026.46.1 — 2026-11-14
+
+**Added**
+
+- `VoltexaBridge` — a classloader bridge that resolves the core's
+  `VoltexaAPI` through the core plugin's own classloader (the same
+  `Class` object the core registered) and wraps it in a proxy that
+  implements Bank's copy of the contract. Contract types crossing the
+  boundary are translated: functional arguments are wrapped for the
+  core, and record data carriers coming back are re-materialized as
+  Bank's copies.
+- `VoltexaBridgeTest` (14 tests) — verifies the bridge against a
+  simulated two-classloader setup.
+
+**Changed**
+
+- `bank.jar` now bundles the `voltexa-api` contract, so it is
+  self-contained: it works with the server's normal launch — **no JVM
+  flags, no classpath changes**. `BankPlugin` resolves the API through
+  `VoltexaBridge` instead of its own copy of the contract.
+
+**Fixed**
+
+- `NoClassDefFoundError` (`MigrationService` / `VoltexaAPI`) on Paper
+  26.3 servers started with the normal launch: the contract was
+  previously only available via a separate `voltexa-api.jar` on the
+  server classpath. [VOL-20](/VOL/issues/VOL-20)
+
 ## 0.1.0 — 2026-11-14
 
 **Added**

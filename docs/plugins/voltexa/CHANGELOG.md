@@ -28,6 +28,28 @@ Format: one section per release, newest first. Entries grouped as
 
 - — none —
 
+## 2026.46.1 — 2026-11-14
+
+**Changed**
+
+- `voltexa.jar` now bundles the `voltexa-api` contract (shaded in
+  alongside H2), so the plugin is self-contained: it works with the
+  server's normal launch — **no JVM flags, no classpath changes**.
+  Feature plugins resolve the core's services through their classloader
+  bridges (Bank: `VoltexaBridge`), because Bukkit isolates plugin
+  classloaders and the `ServicesManager` matches registrations by
+  `Class` identity.
+- Deployment docs rewritten: the `--patch-module java.base=
+  voltexa-api.jar` / `--add-exports` launcher flags are no longer needed
+  (see [README.md](README.md#deployment)).
+
+**Fixed**
+
+- `NoClassDefFoundError` (`MigrationService` / `VoltexaAPI`) on Paper
+  26.3 servers started with the normal launch: the contract was
+  previously only available via a separate `voltexa-api.jar` on the
+  server classpath. [VOL-20](/VOL/issues/VOL-20)
+
 ## 0.1.0 — 2026-11-14
 
 **Added**

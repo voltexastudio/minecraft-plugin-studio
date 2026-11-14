@@ -42,6 +42,29 @@ Pass criteria:
   - every migration's SQL is present and non-blank
   - the migrations create `bank_accounts` / `bank_transactions`
     (the ledger references the accounts table)
+- [ ] `VoltexaBridgeTest` passes (14 tests) — the classloader bridge
+  against a simulated two-classloader setup (a custom classloader loads
+  the contract fresh as the "core side"; the test classloader holds
+  Bank's copy):
+  - the two sides load different `Class` objects (isolation sanity)
+  - `version()` passes through; the service accessors return Bank-side
+    proxies of Bank's contract types
+  - `withConnection` round-trips a Bank lambda through the core and back
+    (the lambda is wrapped in a core-side proxy; the core's connection
+    is passed through)
+  - a `SQLException` thrown by the core arrives unwrapped (not as an
+    `InvocationTargetException`)
+  - `borrowConnection`/`releaseConnection` and `databaseProduct()` pass
+    through
+  - `appliedMigrations()` returns Bank-side `MigrationRecord` copies
+    (re-materialized from the core-side records)
+  - `applyMigrations(owner, pluginClass)` passes the `Class` through
+  - `applyMigrations(owner, List<Migration>)` re-materializes the
+    Bank-side records as core-side records (the core sees its own copy)
+  - `log().info/warn` forwarding includes the varargs (and the no-args
+    case)
+  - `config().forPlugin` passes the name and data folder through
+  - the proxy's `toString`/`hashCode`/`equals` behave
 
 The core-side support (the `MigrationService.applyMigrations(owner, pluginClass)`
 overload, the `VoltexaAPI` service registration, and the `DatabaseService`
@@ -54,21 +77,25 @@ Preconditions:
 
 - Paper **26.3-251** test server (`qa-server/`)
 - `baseline` config profile deployed (see `configs/baseline/README.md`)
-- `voltexa-api.jar` on the server classpath
-  (`--patch-module java.base=<abs-path>/voltexa-api.jar`
-  `--add-exports java.base/com.voltexastudios.voltexa.api=ALL-UNNAMED`)
-- `voltexa.jar` and `bank.jar` in `plugins/`
+- `voltexa.jar` and `bank.jar` in `plugins/` — both self-contained
+  (the contract is bundled in each), so the server starts with the
+  **normal launch: no JVM flags, no classpath changes**
 
 Steps and pass criteria:
 
-1. **Clean startup** — start the server.
-   - [ ] Log contains `Voltexa 2026.46 ready` with the applied migration count
+1. **Clean startup** — start the server with the normal launch
+   (`java -jar paper-26.3-251.jar`, no `--patch-module`, no
+   `--add-exports`).
+   - [ ] Log contains `Voltexa 2026.46.1 ready` with the applied
+     migration count
    - [ ] On a fresh database the log contains
      `applied migration 1 (bank_accounts) for bank`,
      `applied migration 2 (bank_transactions) for bank`,
      `applied migration 3 (bank_transactions_account_index) for bank`
    - [ ] Log contains
-     `Bank 2026.46 enabled - VoltexaAPI 2026.46 resolved, 3 bank migration(s) applied, coins currency`
+     `Bank 2026.46.1 enabled - VoltexaAPI 2026.46.1 resolved, 3 bank migration(s) applied, coins currency`
+     (the `VoltexaAPI … resolved` part proves the classloader bridge
+     found the core's service)
    - [ ] No plugin-related errors or stack traces
 2. **Load order** — verify in the log that `Voltexa` enabled before `Bank`.
    - [ ] `depend: [Voltexa]` enforced by the server
@@ -91,8 +118,8 @@ Steps and pass criteria:
      `applied migration … for bank` lines)
    - [ ] `/bank accounts` → `#1 Steve: 120 coins` (the seeded balance reads
      back through the plugin)
-   - [ ] The `Bank 2026.46 enabled` line appears again (3 bank migrations
-     reported from the recorded state)
+   - [ ] The `Bank 2026.46.1 enabled` line appears again (3 bank
+     migrations reported from the recorded state)
 
    A live player deposit/withdraw is not exercised headlessly; that path is
    covered by `BankServiceTest` (stage 1) against the real H2 driver, and the

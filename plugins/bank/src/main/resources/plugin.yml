@@ -1,5 +1,5 @@
 name: Bank
-version: '2026.46'
+version: '2026.46.1'
 main: com.voltexastudios.bank.BankPlugin
 api-version: '1.21'
 description: VoltexaStudios bank plugin - player bank accounts, deposit/withdraw, /bank balance.

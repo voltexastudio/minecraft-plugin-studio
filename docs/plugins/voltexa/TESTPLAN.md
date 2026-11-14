@@ -43,18 +43,17 @@ Preconditions:
 
 - Paper **26.3-251** test server (`qa-server/`)
 - `baseline` config profile deployed (see `configs/baseline/README.md`)
-- `voltexa-api.jar` on the server platform classpath
-  (`--patch-module java.base=<abs-path>/voltexa-api.jar`
-  `--add-exports java.base/com.voltexastudios.voltexa.api=ALL-UNNAMED`)
-- `voltexa.jar` in `plugins/`
+- `voltexa.jar` in `plugins/` — self-contained (H2 and the contract are
+  shaded in), so the server starts with the **normal launch: no JVM
+  flags, no classpath changes**
 
 Steps and pass criteria:
 
 1. **Clean startup** — start the server:
-   `java --patch-module java.base=<abs-path>/voltexa-api.jar \
-     --add-exports java.base/com.voltexastudios.voltexa.api=ALL-UNNAMED \
-     -jar paper-26.3-251.jar`
-   - [ ] Log contains `Voltexa 2026.46 ready` with the applied migration count
+   `java -jar paper-26.3-251.jar` (no `--patch-module`, no
+   `--add-exports`)
+   - [ ] Log contains `Voltexa 2026.46.1 ready` with the applied migration
+     count
    - [ ] Log contains the applied-migration line for the core baseline
    - [ ] No plugin-related errors or stack traces
 2. **Database + migration evidence**
@@ -63,7 +62,7 @@ Steps and pass criteria:
 3. **Status command** — run `/voltexa status` from the console.
    - [ ] Output shows database product, pool size, applied migrations, config keys
 4. **Version command** — run `/voltexa version`.
-   - [ ] Output is `Voltexa 2026.46`
+   - [ ] Output is `Voltexa 2026.46.1`
 5. **Disable path** — stop the server. (Paper 26.3 removed the `/plugin`
    command, so the disable path is the server shutdown; the core's
    `onDisable` must log `Voltexa disabled.` and close the pool cleanly.)
@@ -71,8 +70,8 @@ Steps and pass criteria:
 6. **Re-enable** — start the server again.
    - [ ] Core re-enables cleanly (ready line), the H2 file is reused
      (no second, double-suffixed file appears), migrations are not
-     re-applied (ready line still reports the same applied count),
-     `/voltexa status` works again
+     re-applied (no new `applied migration …` lines), `/voltexa status`
+     works again
 
 Record the server log (enable line, command exchange, disable line) as evidence
 on the QA task.

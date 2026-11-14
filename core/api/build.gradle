@@ -1,7 +1,10 @@
 // voltexa-api - typed service contracts for VoltexaStudios feature plugins.
 // Interfaces and data carriers only: no implementation classes, no reflection.
-// Feature plugins depend on this artifact at compile time and resolve the
-// implementations through the Bukkit Services API at runtime.
+// Feature plugins depend on this artifact at compile time and bundle it
+// into their own jar (self-contained on the server). At runtime they
+// resolve the core's implementation through a classloader bridge (Bank:
+// VoltexaBridge), because Bukkit isolates plugin classloaders and the
+// ServicesManager matches registrations by Class identity.
 
 dependencies {
     // Contract types reference Bukkit config types; the server API is not

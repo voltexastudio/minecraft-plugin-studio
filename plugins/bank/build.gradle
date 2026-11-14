@@ -1,11 +1,20 @@
 // bank - first VoltexaStudios feature plugin (v1: accounts, deposit/withdraw,
-// /bank balance). Compiles against the voltexa-api artifact; it ships no
-// duplicate shared code and never touches the JDBC driver, database URL, or
-// pool directly.
+// /bank balance). Compiles against the voltexa-api artifact and bundles it
+// into bank.jar (self-contained on the server); the core's service
+// implementation is resolved through VoltexaBridge, which translates the
+// contract across the isolated plugin classloaders. Bank never touches the
+// JDBC driver, database URL, or pool directly.
+
+configurations {
+    shade
+}
 
 dependencies {
     api project(':core:api')
     compileOnly paperApi
+    // Bundle the contract so bank.jar works without voltexa-api.jar on the
+    // server classpath (VoltexaBridge resolves the core's implementation).
+    shade project(':core:api')
     testImplementation paperApi
     // The unit tests exercise the real H2 driver (in-memory) for the domain
     // logic, matching the core's test setup.
@@ -17,4 +26,11 @@ jar {
     // Deployed as-is on servers: the artifact is exactly bank.jar (the
     // version lives in plugin.yml, not the file name), matching voltexa.jar.
     archiveVersion = ''
+    // The shade configuration resolves project dependencies to their jar
+    // task outputs; declare the dependency so Gradle orders the tasks.
+    dependsOn configurations.shade
+    from {
+        configurations.shade.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
 }

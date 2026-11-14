@@ -1,6 +1,7 @@
 // voltexa - the Voltexa core Paper plugin (shared infrastructure).
-// H2 is shaded into the jar so the plugin is self-contained on any server;
-// no plugin.yml `libraries:` download is needed at runtime.
+// H2 and the voltexa-api contract are shaded into the jar so the plugin is
+// self-contained on any server: no JVM flags, no shared classpath entry, no
+// plugin.yml `libraries:` download at runtime.
 
 configurations {
     shade
@@ -10,6 +11,10 @@ dependencies {
     api project(':core:api')
     compileOnly paperApi
     shade 'com.h2database:h2:2.3.232'
+    // Bundle the contract so voltexa.jar loads without voltexa-api.jar on
+    // the server classpath (feature plugins resolve the implementation
+    // through their classloader bridge, e.g. Bank's VoltexaBridge).
+    shade project(':core:api')
     testImplementation paperApi
     // The unit tests exercise the real H2 driver (in-memory + file).
     testImplementation 'com.h2database:h2:2.3.232'
@@ -20,6 +25,9 @@ jar {
     // Deployed as-is on servers: the artifact is exactly voltexa.jar
     // (the version lives in plugin.yml, not the file name).
     archiveVersion = ''
+    // The shade configuration resolves project dependencies to their jar
+    // task outputs; declare the dependency so Gradle orders the tasks.
+    dependsOn configurations.shade
     from {
         configurations.shade.collect { it.isDirectory() ? it : zipTree(it) }
     }

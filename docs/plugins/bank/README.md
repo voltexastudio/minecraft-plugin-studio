@@ -50,11 +50,16 @@ config file:
 
 - `plugin.yml` declares `depend: [Voltexa]` — the server refuses to enable
   Bank unless the Voltexa core is present and enabled first.
-- The module compiles against the `voltexa-api` artifact (interfaces only).
-- On enable, the plugin resolves the core's `VoltexaAPI` through the Bukkit
-  Services API and obtains the `DatabaseService`, `ConfigService`,
-  `LogService`, and `MigrationService` from it. Bank ships **no** DB-setup
-  code — the core owns the pool.
+- The module compiles against the `voltexa-api` artifact (interfaces only)
+  and bundles it into `bank.jar`, so the jar is self-contained on the
+  server.
+- On enable, the plugin resolves the core's `VoltexaAPI` through
+  `VoltexaBridge`: because Bukkit isolates plugin classloaders, Bank looks
+  the service up through the core plugin's own classloader (the same
+  `Class` object the core registered) and wraps it in a proxy that
+  implements Bank's copy of the contract. Bank then obtains the
+  `DatabaseService`, `ConfigService`, `LogService`, and `MigrationService`
+  from it. Bank ships **no** DB-setup code — the core owns the pool.
 
 ## Build
 
@@ -67,10 +72,15 @@ config file:
 
 ## Deployment
 
-Like every Voltexa feature plugin, Bank resolves `VoltexaAPI` through the
-Bukkit Services API, which requires the shared `voltexa-api.jar` on the
-**server classpath** (see [../voltexa/README.md](../voltexa/README.md#deployment));
-`bank.jar` itself goes in `plugins/`.
+`bank.jar` is self-contained: it bundles the `voltexa-api` contract, so it
+works with the server's normal launch — **no JVM flags, no classpath
+changes**. Drop `bank.jar` (and `voltexa.jar`) in `plugins/` and start the
+server normally.
+
+Because Bukkit isolates plugin classloaders, Bank resolves the core's
+`VoltexaAPI` through the core plugin's own classloader (`VoltexaBridge`)
+rather than its own copy of the contract — see
+[../voltexa/README.md](../voltexa/README.md#deployment).
 
 ## Test plan
 

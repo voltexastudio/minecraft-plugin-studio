@@ -28,9 +28,11 @@ VoltexaStudios feature plugin builds on, so features ship domain logic only.
 
 ## Feature plugins
 
-Feature plugins (first: `Bank`) declare `depend: [Voltexa]` in `plugin.yml`,
-compile against the `voltexa-api` artifact (interfaces only), and resolve the
-core's services through the Bukkit Services API. No feature ships duplicate
+Feature plugins (first: `Bank`) declare `depend: [Voltexa]` in `plugin.yml`
+and bundle the `voltexa-api` contract (interfaces only) into their own jar.
+They resolve the core's services through a classloader bridge (Bank:
+`VoltexaBridge`) that looks the service up through the core plugin's own
+classloader — see [Deployment](#deployment). No feature ships duplicate
 shared code.
 
 ## Build
@@ -46,27 +48,34 @@ shared code.
 
 ## Deployment
 
-Bukkit plugin classloaders are isolated (parent-last), and the Bukkit
-`ServicesManager` matches registrations by `Class` identity. For feature
-plugins to resolve the core's typed API, **all plugins must see the same
-`VoltexaAPI` class** — so `voltexa-api.jar` goes on the **server
-classpath**, not into `plugins/`:
+The plugin jars are **self-contained**: each bundles the `voltexa-api`
+contract, so there are **no JVM flags and no classpath changes** — drop
+the jars in `plugins/` and start the server normally:
 
 ```bash
-java --patch-module java.base=<path-to>/voltexa-api.jar \
-     --add-exports java.base/com.voltexastudios.voltexa.api=ALL-UNNAMED \
-     -jar paper-<version>.jar
+java -jar paper-<version>.jar
 ```
 
-Then `voltexa.jar` (and feature plugin jars) go in `plugins/`. Paper's
-modular launcher builds its classpath from a fixed manifest list, so a jar
-dropped in `libraries/` is **not** picked up, and the launcher's
-classloader skips the system classpath; `--patch-module java.base=` puts
-the contract on the platform classpath, which every plugin classloader
-delegates to (JDK 25 removed `-Xbootclasspath/a`). `--add-exports` is
-required because a patched package is not exported from `java.base` to the
-unnamed plugin modules — without it, plugin classes fail the
-superinterface check with `IllegalAccessError`.
+- `voltexa.jar` — the core (H2 and the contract are shaded in).
+- Feature plugin jars (e.g. `bank.jar`) — each bundles its own copy of the
+  contract.
+
+### How feature plugins resolve the core's API
+
+Bukkit isolates each plugin's classloader (parent-first), so a feature's
+copy of the contract is a different `Class` object from the core's, and
+the Bukkit `ServicesManager` matches registrations by `Class` identity. A
+feature therefore cannot look the core's service up with its own copy of
+`VoltexaAPI`. Instead, each feature resolves the service **through the
+core plugin's own classloader** (Bank: `VoltexaBridge`), which yields the
+same `Class` object the core registered, and wraps the result in a dynamic
+proxy that implements the feature's copy of the contract. Contract types
+that cross the boundary are translated: functional arguments are wrapped
+for the core, and record data carriers coming back are re-materialized as
+the feature's copies. The feature's typed code then works unchanged.
+
+The former `--patch-module java.base=voltexa-api.jar` / `--add-exports`
+launcher flags are **no longer needed** and were removed in `2026.46.1`.
 
 ## Test plan
 

@@ -30,7 +30,7 @@ class BankSmokeTest {
     void pluginYmlHasExpectedIdentity() throws Exception {
         Map<String, Object> yml = loadPluginYml();
         assertEquals("Bank", yml.get("name"));
-        assertEquals("2026.46", yml.get("version"));
+        assertEquals("2026.46.1", yml.get("version"));
         assertEquals("1.21", String.valueOf(yml.get("api-version")));
     }
 
