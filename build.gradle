@@ -1,0 +1,51 @@
+// Shared toolchain and repository configuration for all studio modules.
+// Module build files stay small: module-specific dependencies and jar names only.
+
+ext {
+    // Pinned to the Paper version the QA test server runs (see configs/baseline/README.md).
+    // If the test server version changes, this pin and the baseline profile change together.
+    paperApi = 'io.papermc.paper:paper-api:26.3.build.251-stable'
+    junitJupiter = 'org.junit.jupiter:junit-jupiter:5.10.2'
+}
+
+subprojects {
+    apply plugin: 'java'
+
+    group = 'com.voltexastudios'
+    version = '0.1.0'
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(25)
+        }
+    }
+
+    repositories {
+        mavenCentral()
+        maven {
+            name = 'papermc'
+            url = 'https://repo.papermc.io/repository/maven-public/'
+        }
+    }
+
+    dependencies {
+        testImplementation junitJupiter
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+}
+
+// Modules that expose an API to other modules use java-library (adds the
+// `api` configuration).
+project(':core:api') {
+    apply plugin: 'java-library'
+}
+project(':core:impl') {
+    apply plugin: 'java-library'
+}
+project(':plugins:bank') {
+    apply plugin: 'java-library'
+}

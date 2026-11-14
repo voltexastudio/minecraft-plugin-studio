@@ -1,0 +1,17 @@
+// VoltexaStudios studio build - one multi-project Gradle build.
+//
+// Modules:
+//   core:api              -> voltexa-api.jar   typed service contracts (interfaces only)
+//   core:impl             -> voltexa.jar       the Voltexa core Paper plugin
+//   plugins:hello-voltexa -> hello-voltexa     studio skeleton demo
+//   plugins:bank          -> bank.jar          first feature plugin (depend: [Voltexa])
+//
+// The layout is organized per plugin, so a module can be cut out into its own
+// repo later (e.g. for marketplace publishing) without a rewrite.
+
+rootProject.name = 'minecraft-plugin-studio'
+
+include 'core:api'
+include 'core:impl'
+include 'plugins:hello-voltexa'
+include 'plugins:bank'

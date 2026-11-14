@@ -1,5 +1,8 @@
-# Build output
-plugins/*/build/
+# Build output (root + all modules)
+**/build/
+
+# Gradle project cache
+.gradle/
 
 # QA test server runtime (jar, world data, libraries, logs) — not source
 qa-server/
