@@ -8,8 +8,14 @@ Format: one section per release, newest first. Entries grouped as
 
 **Added**
 
-- Placeholder feature plugin: `depend: [Voltexa]`, compiles against
+- Feature plugin wiring: `depend: [Voltexa]`, compiles against
   `voltexa-api`, resolves `VoltexaAPI` through the Bukkit Services API on
   enable.
-- Feature work (accounts, deposit/withdraw, `/bank` commands) lands in a
-  follow-up issue.
+- Contract stage: bank data model as versioned SQL migrations
+  (`0001_bank_accounts`, `0002_bank_transactions`,
+  `0003_bank_transactions_account_index`), applied through the core
+  migration runner (`MigrationService.applyMigrations("bank",
+  BankPlugin.class)`).
+- `plugin.yml` declares the `/bank` command namespace.
+- Feature work (accounts, deposit/withdraw, `/bank` executors) lands in
+  Bank v1.

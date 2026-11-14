@@ -54,4 +54,13 @@ class BankSmokeTest {
                 : List.of(String.valueOf(depend));
         assertTrue(depends.contains("Voltexa"), "Bank must depend on the Voltexa core");
     }
+
+    @Test
+    void declaresTheBankCommand() throws Exception {
+        Map<String, Object> yml = loadPluginYml();
+        Map<String, Object> commands = yml.get("commands") instanceof Map<?, ?> map
+                ? (Map<String, Object>) map
+                : Map.of();
+        assertTrue(commands.containsKey("bank"), "the /bank command must be declared in plugin.yml");
+    }
 }

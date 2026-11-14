@@ -11,11 +11,24 @@ stage 2; a failed stage 2 is a bug report, not a retry of the same build.
 
 Pass criteria:
 
-- [ ] `BankSmokeTest` passes (4 tests):
+- [ ] `BankSmokeTest` passes (5 tests):
   - `plugin.yml` has the expected name/version/api-version
   - `plugin.yml` `main` matches `BankPlugin`
   - the main class extends `JavaPlugin`
   - `plugin.yml` `depend` includes `Voltexa`
+  - `plugin.yml` declares the `bank` command
+- [ ] `BankMigrationResourcesTest` passes (4 tests):
+  - the contract migration files are present
+    (`0001_bank_accounts.sql`, `0002_bank_transactions.sql`,
+    `0003_bank_transactions_account_index.sql`)
+  - file names follow the `<version>_<name>.sql` convention
+  - every migration's SQL is present and non-blank
+  - the migrations create `bank_accounts` / `bank_transactions`
+    (the ledger references the accounts table)
+
+The core-side support for the contract (the
+`MigrationService.applyMigrations(owner, pluginClass)` overload) is covered
+by `:core:impl:test` — see [../voltexa/TESTPLAN.md](../voltexa/TESTPLAN.md).
 
 ## Stage 2 — server smoke test (QA test server)
 
@@ -26,27 +39,49 @@ Preconditions:
 - `voltexa-api.jar` on the server classpath
   (`--patch-module java.base=<abs-path>/voltexa-api.jar`
   `--add-exports java.base/com.voltexastudios.voltexa.api=ALL-UNNAMED`)
-- `voltexa.jar` and `bank-<version>.jar` in `plugins/`
+- `voltexa.jar` and `bank-0.1.0.jar` in `plugins/`
 
 Steps and pass criteria:
 
 1. **Clean startup** — start the server.
-   - [ ] Log contains `Bank 0.1.0 enabled (placeholder) - VoltexaAPI 0.1.0 resolved from core.`
+   - [ ] Log contains `Voltexa 0.1.0 ready` with the applied migration count
+   - [ ] On a fresh database the log contains
+     `applied migration 1 (bank_accounts) for bank`,
+     `applied migration 2 (bank_transactions) for bank`,
+     `applied migration 3 (bank_transactions_account_index) for bank`
+   - [ ] Log contains
+     `Bank 0.1.0 enabled (contract) - VoltexaAPI 0.1.0 resolved, 3 bank migration(s) applied.`
    - [ ] No plugin-related errors or stack traces
 2. **Load order** — verify in the log that `Voltexa` enabled before `Bank`.
    - [ ] `depend: [Voltexa]` enforced by the server
-3. **Disable path** — stop the server. (Paper 26.3 removed the `/plugin`
+3. **Migration evidence**
+   - [ ] `/voltexa status` reports `migrations: 4 applied`
+     (1 core + 3 bank)
+   - [ ] `schema_migrations` holds rows for owner `bank` versions 1–3
+     and owner `core` version 1
+   - [ ] `bank_accounts` and `bank_transactions` exist in the H2 file
+     (inspect with the H2 shell or a JDBC check; use the base name
+     without the `.mv.db` suffix in the URL — H2 appends the suffix
+     itself, exactly like the core's `H2FileProvider`)
+4. **Disable path** — stop the server. (Paper 26.3 removed the `/plugin`
    command, so the disable path is the server shutdown; the plugin's
    `onDisable` must log `Bank disabled.` cleanly.)
    - [ ] Log contains `Bank disabled.` and the server stays stable
-4. **Re-enable** — start the server again.
-   - [ ] Plugin re-enables cleanly and resolves `VoltexaAPI` again
-     (the enable line from step 1 appears in the new log)
+5. **Re-enable** — start the server again.
+   - [ ] No bank migration is re-applied (no new
+     `applied migration … for bank` lines)
+   - [ ] The enable line from step 1 appears again (3 bank migrations
+     reported from the recorded state)
+   - [ ] `/voltexa status` still reports `migrations: 4 applied`
 
-Record the server log (enable line, disable line) as evidence on the QA task.
+Record the server log (enable line, applied-migration lines, status
+exchange, disable line) as evidence on the QA task.
 
 ## Regression notes
 
 - Bumping the Paper version: re-run both stages; the `paper-api` pin in the
   root `build.gradle` and the `baseline` profile target version must change
   together.
+- Adding a Bank migration: append a new file with the next version number
+  (never edit or remove an applied file); re-run both stages and verify the
+  new migration applies once and is recorded under owner `bank`.

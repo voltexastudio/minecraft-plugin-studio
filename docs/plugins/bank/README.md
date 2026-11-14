@@ -1,19 +1,36 @@
 # Bank
 
-First VoltexaStudios feature plugin — **placeholder** for now. Feature work
-(accounts, deposit/withdraw, `/bank` commands) lands in a follow-up issue.
+First VoltexaStudios feature plugin. **Contract stage**: ships the bank
+data model (versioned SQL migrations) and the `/bank` command namespace.
+Feature work (accounts, deposit/withdraw, `/bank` executors) lands in
+Bank v1.
 
-## Purpose of the placeholder
+## What the contract stage ships
 
-Prove the feature-plugin wiring end to end:
+- **Data model** — `bank_accounts` (one account per player, integer
+  balance in the smallest currency unit) and `bank_transactions`
+  (append-only ledger with the resulting balance), defined as versioned
+  SQL migrations in `src/main/resources/migrations/` (one statement per
+  file, zero-padded version prefix).
+- **Migration bootstrap** — on enable, the plugin applies its migrations
+  through the core's `MigrationService.applyMigrations("bank",
+  BankPlugin.class)`; the core reads the files from Bank's own classloader
+  and records them under owner `bank`. No file-loading code is shipped in
+  this module.
+- **Command namespace** — `plugin.yml` declares `/bank`; executors land in
+  Bank v1.
+
+The design document (data model, migration SQL, the exact `voltexa-api`
+surface Bank v1 consumes, and the `/bank` command spec) is attached to the
+contract issue on Paperclip.
+
+## Wiring (unchanged from the placeholder)
 
 - `plugin.yml` declares `depend: [Voltexa]` — the server refuses to enable
   Bank unless the Voltexa core is present and enabled first.
 - The module compiles against the `voltexa-api` artifact (interfaces only).
 - On enable, the plugin resolves the core's `VoltexaAPI` through the Bukkit
-  Services API and logs the resolved core version.
-
-The placeholder ships no domain logic and no commands.
+  Services API.
 
 ## Build
 
