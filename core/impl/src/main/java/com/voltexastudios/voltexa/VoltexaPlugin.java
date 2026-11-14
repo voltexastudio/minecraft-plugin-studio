@@ -16,7 +16,6 @@ import com.voltexastudios.voltexa.migration.DefaultMigrationService;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.ServicePriority;
@@ -102,16 +101,8 @@ public final class VoltexaPlugin extends JavaPlugin {
         if (cachedCoreMigrations != null) {
             return cachedCoreMigrations;
         }
-        List<Migration> result = new ArrayList<>();
-        for (String fileName : MigrationFiles.listSqlFiles()) {
-            // File names are zero-padded version prefixes: 0001_core_meta.sql
-            int prefixLen = MigrationFiles.versionPrefixLength(fileName);
-            int version = Integer.parseInt(fileName.substring(0, prefixLen));
-            String name = fileName.substring(prefixLen, fileName.length() - ".sql".length());
-            result.add(new Migration(version, name, MigrationFiles.readSql(fileName)));
-        }
-        cachedCoreMigrations = result;
-        return result;
+        cachedCoreMigrations = MigrationFiles.loadMigrations(getClass().getClassLoader());
+        return cachedCoreMigrations;
     }
 
     private void registerServices(Voltexa api) {

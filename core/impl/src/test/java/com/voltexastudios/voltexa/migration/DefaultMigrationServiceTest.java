@@ -11,6 +11,10 @@ import com.voltexastudios.voltexa.db.ConnectionPool;
 import com.voltexastudios.voltexa.db.DefaultDatabaseService;
 import com.voltexastudios.voltexa.db.DatabaseProvider;
 import com.voltexastudios.voltexa.log.DefaultLogService;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -18,8 +22,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.logging.Logger;
+import javax.tools.ToolProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Unit tests for the versioned migration runner against an in-memory H2
@@ -135,5 +141,47 @@ class DefaultMigrationServiceTest {
         List<MigrationRecord> applied = migrations.appliedMigrations();
         assertEquals(2, applied.size(), "same version under different owners must both be tracked");
         assertTrue(applied.stream().anyMatch(r -> r.owner().equals("bank")));
+    }
+
+    @TempDir
+    Path tempDir;
+
+    @Test
+    void classOverloadAppliesThePluginsOwnMigrationFiles() throws Exception {
+        // Feature-plugin path: a "plugin" directory with its own migrations/
+        // plus a compiled marker class, loaded through a URLClassLoader so
+        // the Class overload's classloader lookup sees the plugin's files.
+        Path pluginDir = tempDir.resolve("bank");
+        Path migrationsDir = pluginDir.resolve("migrations");
+        Files.createDirectories(migrationsDir);
+        Files.writeString(migrationsDir.resolve("0001_bank_accounts.sql"),
+                "CREATE TABLE bank_accounts (account_id BIGINT PRIMARY KEY, balance BIGINT NOT NULL)");
+        Files.writeString(migrationsDir.resolve("0002_bank_transactions.sql"),
+                "CREATE TABLE bank_transactions (transaction_id BIGINT PRIMARY KEY, account_id BIGINT NOT NULL)");
+
+        Path classDir = tempDir.resolve("bank-classes");
+        Files.createDirectories(classDir);
+        Path source = tempDir.resolve("BankMarker.java");
+        Files.writeString(source, "public class BankMarker {}");
+        assertEquals(0, ToolProvider.getSystemJavaCompiler().run(
+                null, null, null, "-d", classDir.toString(), source.toString()),
+                "marker class must compile");
+        URLClassLoader loader = new URLClassLoader(
+                new URL[]{pluginDir.toUri().toURL(), classDir.toUri().toURL()}, null);
+        Class<?> pluginClass = Class.forName("BankMarker", true, loader);
+
+        migrations.applyMigrations("bank", pluginClass);
+
+        assertTrue(tableExists("bank_accounts"), "accounts table must exist after apply");
+        assertTrue(tableExists("bank_transactions"), "transactions table must exist after apply");
+        List<MigrationRecord> applied = migrations.appliedMigrations();
+        assertEquals(2, applied.size());
+        assertTrue(applied.stream().allMatch(r -> r.owner().equals("bank")));
+        assertEquals("bank_accounts", applied.get(0).name());
+        assertEquals("bank_transactions", applied.get(1).name());
+
+        // Re-enable path: re-apply through the same classloader is a no-op.
+        migrations.applyMigrations("bank", pluginClass);
+        assertEquals(2, migrations.appliedMigrations().size(), "migrations must not be re-applied");
     }
 }

@@ -23,12 +23,19 @@ Pass criteria:
   - input order does not change apply order (version order)
   - a failed migration is rolled back and not recorded
   - the same version under different owners is tracked separately
+  - the `applyMigrations(owner, pluginClass)` overload applies a "plugin's"
+    own migration files (compiled marker class + `migrations/` directory on
+    a `URLClassLoader`), records them under the owner, and is idempotent
+    on re-apply
 - [ ] `ConnectionPoolTest` passes: borrow/release reuse, exhaustion timeout,
   slot freed on release, closed pool rejects borrows
 - [ ] `H2FileProviderTest` passes: the H2 database file is created on first use
 - [ ] `MigrationFilesTest` passes: baseline listed from the class directory,
   baseline SQL readable, jar branch skips foreign/short entries and nested
-  files (regression for the `substring` before the prefix guard)
+  files (regression for the `substring` before the prefix guard),
+  classloader-parameterized listing and `loadMigrations` parse a foreign
+  plugin's files (version prefix, name without the separator underscore,
+  SQL) and an empty directory yields no migrations
 
 ## Stage 2 — server smoke test (QA test server)
 

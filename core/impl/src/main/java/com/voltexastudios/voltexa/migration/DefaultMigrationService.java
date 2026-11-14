@@ -1,10 +1,12 @@
 package com.voltexastudios.voltexa.migration;
 
+import com.voltexastudios.voltexa.MigrationFiles;
 import com.voltexastudios.voltexa.api.Migration;
 import com.voltexastudios.voltexa.api.MigrationRecord;
 import com.voltexastudios.voltexa.api.MigrationService;
 import com.voltexastudios.voltexa.db.DefaultDatabaseService;
 import com.voltexastudios.voltexa.log.DefaultLogService;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -46,6 +48,17 @@ public final class DefaultMigrationService implements MigrationService {
             }
             return null;
         });
+    }
+
+    @Override
+    public void applyMigrations(String owner, Class<?> pluginClass) throws SQLException {
+        List<Migration> migrations;
+        try {
+            migrations = MigrationFiles.loadMigrations(pluginClass.getClassLoader());
+        } catch (IOException e) {
+            throw new SQLException("could not read migration files for " + owner + ": " + e.getMessage(), e);
+        }
+        applyMigrations(owner, migrations);
     }
 
     @Override

@@ -8,8 +8,12 @@ VoltexaStudios feature plugin builds on, so features ship domain logic only.
 - **Database** — embedded H2 (zero-config, file-based) behind a JDBC
   abstraction; the core owns the connection pool. MySQL/PostgreSQL backends
   can be swapped in later by implementing the provider interface.
-- **Migrations** — versioned SQL migration runner; each plugin owns its tables.
-  Applied migrations are recorded in `schema_migrations` and never re-applied.
+- **Migrations** — versioned SQL migration runner; each plugin owns its
+  tables. Applied migrations are recorded in `schema_migrations` and never
+  re-applied. Feature plugins apply their own migration files with
+  `MigrationService.applyMigrations(owner, pluginClass)` — the core reads
+  the files from the plugin's own classloader, so a feature never ships
+  file-loading code.
 - **Config** — core `config.yml` + per-plugin config loading helpers.
 - **Logging** — one consistent logger for all studio output.
 - **Typed API** — `VoltexaAPI` entry point (plus `DatabaseService`,

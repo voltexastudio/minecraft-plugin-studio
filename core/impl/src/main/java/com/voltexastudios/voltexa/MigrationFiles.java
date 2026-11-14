@@ -1,5 +1,6 @@
 package com.voltexastudios.voltexa;
 
+import com.voltexastudios.voltexa.api.Migration;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,21 +15,34 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 /**
- * Loads the core's versioned migration SQL files from the classpath. Works
- * both from an exploded classes directory (dev/test) and from the shaded
- * plugin jar (server).
+ * Loads versioned migration SQL files from a classloader. Works both from
+ * an exploded classes directory (dev/test) and from a plugin jar (server).
+ * The no-argument variants read the core's own migrations; the
+ * classloader-parameterized variants let feature plugins load their own
+ * {@code migrations} resources through the core (see
+ * {@code MigrationService#applyMigrations(String, Class)}), so a feature
+ * never ships its own file-loading code.
+ *
+ * <p>Public so the migration runner (in the {@code .migration} subpackage)
+ * can load a feature plugin's files; it is an internal helper of the
+ * {@code voltexa} jar, not part of the typed {@code voltexa-api} surface.
  */
-final class MigrationFiles {
+public final class MigrationFiles {
 
     private static final String DIR = "migrations";
 
     private MigrationFiles() {
     }
 
-    /** Names of the {@code .sql} files in the {@code migrations} classpath directory, sorted. */
+    /** Names of the core's {@code .sql} files in the {@code migrations} classpath directory, sorted. */
     static List<String> listSqlFiles() throws IOException {
+        return listSqlFiles(VoltexaPlugin.class.getClassLoader());
+    }
+
+    /** Names of the {@code .sql} files in the {@code migrations} classpath directory visible to {@code classLoader}, sorted. */
+    static List<String> listSqlFiles(ClassLoader classLoader) throws IOException {
         List<String> names = new ArrayList<>();
-        for (URL url : Collections.list(VoltexaPlugin.class.getClassLoader().getResources(DIR))) {
+        for (URL url : Collections.list(classLoader.getResources(DIR))) {
             names.addAll(listFromUrl(url));
         }
         Collections.sort(names);
@@ -87,13 +101,41 @@ final class MigrationFiles {
         return i;
     }
 
-    /** Reads one migration file's SQL from the classpath. */
+    /** Reads one of the core's migration files' SQL from the classpath. */
     static String readSql(String fileName) throws IOException {
-        try (InputStream in = VoltexaPlugin.class.getClassLoader().getResourceAsStream(DIR + "/" + fileName)) {
+        return readSql(VoltexaPlugin.class.getClassLoader(), fileName);
+    }
+
+    /** Reads one migration file's SQL visible to {@code classLoader}. */
+    static String readSql(ClassLoader classLoader, String fileName) throws IOException {
+        try (InputStream in = classLoader.getResourceAsStream(DIR + "/" + fileName)) {
             if (in == null) {
                 throw new IOException("migration file not found on classpath: " + fileName);
             }
             return new String(in.readAllBytes(), StandardCharsets.UTF_8);
         }
+    }
+
+    /**
+     * Parses the versioned SQL files visible to {@code classLoader} into
+     * migration records: the zero-padded version prefix is the version, the
+     * rest of the file name (minus {@code .sql}) is the name. Public so
+     * the migration runner (in the {@code .migration} subpackage) can load
+     * a feature plugin's files.
+     */
+    public static List<Migration> loadMigrations(ClassLoader classLoader) throws IOException {
+        List<Migration> result = new ArrayList<>();
+        for (String fileName : listSqlFiles(classLoader)) {
+            int prefixLen = versionPrefixLength(fileName);
+            int version = Integer.parseInt(fileName.substring(0, prefixLen));
+            String name = fileName.substring(prefixLen, fileName.length() - ".sql".length());
+            // 0001_bank_accounts.sql → name "bank_accounts" (the separator
+            // underscore is not part of the name).
+            if (name.startsWith("_")) {
+                name = name.substring(1);
+            }
+            result.add(new Migration(version, name, readSql(classLoader, fileName)));
+        }
+        return result;
     }
 }
