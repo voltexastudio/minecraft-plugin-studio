@@ -9,7 +9,7 @@ plugins. Same profile + same world seed + same plugin jar = comparable runs.
 
 ## Target server
 
-- **Paper 1.21.4** — must match the `paper-api` version pinned in
+- **Paper 26.3** — must match the `paper-api` version pinned in
   `plugins/hello-voltexa/build.gradle`. If the test server version changes,
   this profile and the plugin's API pin change together, in one reviewed change.
 
@@ -17,7 +17,7 @@ plugins. Same profile + same world seed + same plugin jar = comparable runs.
 
 A set of **partial** config files. Only settings the studio pins are listed,
 each with a comment explaining why; any unlisted setting falls back to the
-Paper 1.21.4 default. This keeps the profile small, reviewable, and diffable.
+Paper 26.3 default. This keeps the profile small, reviewable, and diffable.
 
 | File | Pins |
 | --- | --- |
@@ -41,7 +41,7 @@ Paper 1.21.4 default. This keeps the profile small, reviewable, and diffable.
 
 ## Deploying to a test server
 
-1. Start from a **fresh** Paper 1.21.4 server directory.
+1. Start from a **fresh** Paper 26.3 server directory.
 2. Copy `server.properties`, `eula.txt`, and `paper.yml` into the server root.
 3. Copy `world/world.properties` into the `world/` folder (create it if the
    world does not exist yet; for an existing world, apply the file before the

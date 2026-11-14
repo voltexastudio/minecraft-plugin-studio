@@ -33,9 +33,13 @@ public final class HelloVoltexaPlugin extends JavaPlugin {
     /**
      * Executes the {@code /voltexa} smoke command.
      *
+     * <p>Public because {@code JavaPlugin} implements {@code CommandExecutor}, whose
+     * {@code onCommand} is a {@code public default} method in the current Paper API.
+     *
      * @return always {@code true} — the command takes no arguments
      */
-    private boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         sender.sendMessage(SMOKE_MESSAGE);
         return true;
     }
