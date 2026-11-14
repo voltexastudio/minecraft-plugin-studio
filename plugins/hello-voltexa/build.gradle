@@ -1,37 +1,15 @@
-plugins {
-    id 'java'
-}
+// hello-voltexa - studio skeleton demo plugin (kept as-is apart from the
+// package normalization and the /hellovoltexa command rename).
 
-group = 'com.voltxesa'
-version = '0.1.0'
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
-    }
-}
-
-repositories {
-    mavenCentral()
-    maven {
-        name = 'papermc'
-        url = 'https://repo.papermc.io/repository/maven-public/'
-    }
-}
+version = '0.2.0'
 
 dependencies {
     // Pinned to the Paper version the QA test server runs (see configs/baseline/README.md).
-    compileOnly 'io.papermc.paper:paper-api:26.3.build.251-stable'
+    compileOnly paperApi
     // The smoke test references JavaPlugin and loads the plugin class (whose
     // superclass is JavaPlugin), so paper-api must also be on the test classpath.
-    testImplementation 'io.papermc.paper:paper-api:26.3.build.251-stable'
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testImplementation paperApi
     testImplementation 'org.yaml:snakeyaml:2.2'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-}
-
-test {
-    useJUnitPlatform()
 }
 
 jar {

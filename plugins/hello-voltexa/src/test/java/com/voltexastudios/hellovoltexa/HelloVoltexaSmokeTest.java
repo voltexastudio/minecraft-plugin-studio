@@ -1,4 +1,4 @@
-package com.voltxesa.hellovoltexa;
+package com.voltexastudios.hellovoltexa;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -29,7 +29,7 @@ class HelloVoltexaSmokeTest {
     void pluginYmlHasExpectedIdentity() throws Exception {
         Map<String, Object> yml = loadPluginYml();
         assertEquals("HelloVoltexa", yml.get("name"));
-        assertEquals("0.1.0", yml.get("version"));
+        assertEquals("0.2.0", yml.get("version"));
         assertEquals("1.21", String.valueOf(yml.get("api-version")));
     }
 
@@ -45,10 +45,10 @@ class HelloVoltexaSmokeTest {
     }
 
     @Test
-    void voltexaCommandIsDeclared() throws Exception {
+    void hellovoltexaCommandIsDeclared() throws Exception {
         Map<String, Object> yml = loadPluginYml();
         Map<String, Object> commands = (Map<String, Object>) yml.get("commands");
         assertNotNull(commands, "commands section must exist");
-        assertNotNull(commands.get("voltexa"), "/voltexa smoke command must be declared");
+        assertNotNull(commands.get("hellovoltexa"), "/hellovoltexa smoke command must be declared");
     }
 }
