@@ -8,7 +8,7 @@ package com.voltexastudios.voltexa.api;
  */
 public interface VoltexaAPI {
 
-    /** Core plugin version (semver), e.g. {@code 0.1.0}. */
+    /** Core plugin version (year.week.fix), e.g. {@code 2026.46}. */
     String version();
 
     /** Shared database access. The core owns the connection pool. */

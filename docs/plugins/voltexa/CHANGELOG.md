@@ -4,6 +4,30 @@ Format: one section per release, newest first. Entries grouped as
 **Added** / **Changed** / **Fixed**. Maintained by Community & Content per
 `docs/RELEASE.md`.
 
+## 2026.46 — 2026-11-14
+
+**Added**
+
+- First release of the Voltexa core plugin under the `year.week.fix`
+  scheme (the `0.1.0` entry below is the same codebase, recorded before
+  the scheme switch — its Added list is the feature content of this
+  release).
+
+**Changed**
+
+- Version `0.1.0` → `2026.46` (the `year.week.fix` scheme, plan decision 8;
+  resolves QA defect D1 recorded on [VOL-17](/VOL/issues/VOL-17)): the
+  server now loads `Voltexa v2026.46`, `/voltexa version` reports
+  `Voltexa 2026.46`, and feature plugins resolve `VoltexaAPI 2026.46`.
+  The artifact stays `voltexa.jar` (the version lives in `plugin.yml`, not
+  the file name).
+- `docs/RELEASE.md` versioning section updated from semver to
+  `year.week.fix` to match the studio directive.
+
+**Fixed**
+
+- — none —
+
 ## 0.1.0 — 2026-11-14
 
 **Added**

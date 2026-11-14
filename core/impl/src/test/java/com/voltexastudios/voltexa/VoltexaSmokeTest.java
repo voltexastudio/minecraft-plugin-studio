@@ -29,7 +29,7 @@ class VoltexaSmokeTest {
     void pluginYmlHasExpectedIdentity() throws Exception {
         Map<String, Object> yml = loadPluginYml();
         assertEquals("Voltexa", yml.get("name"));
-        assertEquals("0.1.0", yml.get("version"));
+        assertEquals("2026.46", yml.get("version"));
         assertEquals("1.21", String.valueOf(yml.get("api-version")));
     }
 

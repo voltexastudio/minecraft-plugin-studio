@@ -62,13 +62,13 @@ Preconditions:
 Steps and pass criteria:
 
 1. **Clean startup** — start the server.
-   - [ ] Log contains `Voltexa 0.1.0 ready` with the applied migration count
+   - [ ] Log contains `Voltexa 2026.46 ready` with the applied migration count
    - [ ] On a fresh database the log contains
      `applied migration 1 (bank_accounts) for bank`,
      `applied migration 2 (bank_transactions) for bank`,
      `applied migration 3 (bank_transactions_account_index) for bank`
    - [ ] Log contains
-     `Bank 2026.46 enabled - VoltexaAPI 0.1.0 resolved, 3 bank migration(s) applied, coins currency`
+     `Bank 2026.46 enabled - VoltexaAPI 2026.46 resolved, 3 bank migration(s) applied, coins currency`
    - [ ] No plugin-related errors or stack traces
 2. **Load order** — verify in the log that `Voltexa` enabled before `Bank`.
    - [ ] `depend: [Voltexa]` enforced by the server

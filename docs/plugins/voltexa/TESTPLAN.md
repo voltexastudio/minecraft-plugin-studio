@@ -54,7 +54,7 @@ Steps and pass criteria:
    `java --patch-module java.base=<abs-path>/voltexa-api.jar \
      --add-exports java.base/com.voltexastudios.voltexa.api=ALL-UNNAMED \
      -jar paper-26.3-251.jar`
-   - [ ] Log contains `Voltexa 0.1.0 ready` with the applied migration count
+   - [ ] Log contains `Voltexa 2026.46 ready` with the applied migration count
    - [ ] Log contains the applied-migration line for the core baseline
    - [ ] No plugin-related errors or stack traces
 2. **Database + migration evidence**
@@ -63,7 +63,7 @@ Steps and pass criteria:
 3. **Status command** — run `/voltexa status` from the console.
    - [ ] Output shows database product, pool size, applied migrations, config keys
 4. **Version command** — run `/voltexa version`.
-   - [ ] Output is `Voltexa 0.1.0`
+   - [ ] Output is `Voltexa 2026.46`
 5. **Disable path** — stop the server. (Paper 26.3 removed the `/plugin`
    command, so the disable path is the server shutdown; the core's
    `onDisable` must log `Voltexa disabled.` and close the pool cleanly.)

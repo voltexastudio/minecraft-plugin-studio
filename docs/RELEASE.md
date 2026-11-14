@@ -2,11 +2,12 @@
 
 ## Versioning
 
-Semver per plugin: `MAJOR.MINOR.PATCH`.
+`year.week.fix` per plugin: `YYYY.WW[.N]` (studio directive, 2026-11-14).
 
-- `PATCH` — bug fixes, config tweaks with no behavior change.
-- `MINOR` — new features, new commands, new config keys.
-- `MAJOR` — breaking changes to commands, config, or API surface.
+- `YYYY.WW` — the ISO year and ISO week number of the release
+  (e.g. `2026.46` for a release cut in ISO week 46 of 2026).
+- `.N` — appended for bug-fix releases on top of a weekly release
+  (e.g. `2026.46.1`, `2026.46.2`).
 
 The version in `plugin.yml` is the single source of truth and must match the
 version in the release artifact name.
