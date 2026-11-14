@@ -1,8 +1,8 @@
 name: Bank
-version: 0.1.0
+version: '2026.46'
 main: com.voltexastudios.bank.BankPlugin
 api-version: '1.21'
-description: VoltexaStudios bank plugin - player bank accounts, deposit/withdraw. Contract stage (data model + migrations); feature work lands in Bank v1.
+description: VoltexaStudios bank plugin - player bank accounts, deposit/withdraw, /bank balance.
 author: VoltexaStudios
 depend: [Voltexa]
 commands:

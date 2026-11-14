@@ -17,6 +17,23 @@ Pass criteria:
   - the main class extends `JavaPlugin`
   - `plugin.yml` `depend` includes `Voltexa`
   - `plugin.yml` declares the `bank` command
+- [ ] `BankServiceTest` passes (13 tests) — the domain logic against the real
+  H2 driver (in-memory, the same engine the core shades) with the contract
+  tables:
+  - `balanceOfUnknownPlayerIsEmpty`
+  - `depositCreatesAccountAtStartingBalance`
+  - `depositAddsToExistingAccount`
+  - `depositDoesNotCreateADuplicateAccountOnSecondDeposit`
+  - `withdrawReducesBalance`
+  - `withdrawInsufficientBalanceIsRejectedAndBalanceUnchanged`
+  - `withdrawWithoutAccountIsRejected`
+  - `depositExceedingMaxBalanceIsRejectedAndCreatesNoAccount`
+  - `depositBelowMinTransactionIsRejected`
+  - `withdrawBelowMinTransactionIsRejected`
+  - `listAccountsReturnsAllAccounts`
+  - `ledgerRecordsDepositAndWithdrawWithResultingBalance`
+  - `balanceReflectsDepositThenWithdraw` (the acceptance flow: create,
+    deposit, withdraw, balance reflects it)
 - [ ] `BankMigrationResourcesTest` passes (4 tests):
   - the contract migration files are present
     (`0001_bank_accounts.sql`, `0002_bank_transactions.sql`,
@@ -26,9 +43,10 @@ Pass criteria:
   - the migrations create `bank_accounts` / `bank_transactions`
     (the ledger references the accounts table)
 
-The core-side support for the contract (the
-`MigrationService.applyMigrations(owner, pluginClass)` overload) is covered
-by `:core:impl:test` — see [../voltexa/TESTPLAN.md](../voltexa/TESTPLAN.md).
+The core-side support (the `MigrationService.applyMigrations(owner, pluginClass)`
+overload, the `VoltexaAPI` service registration, and the `DatabaseService`
+transaction contract) is covered by `:core:impl:test` and
+`:core:api:test` — see [../voltexa/TESTPLAN.md](../voltexa/TESTPLAN.md).
 
 ## Stage 2 — server smoke test (QA test server)
 
@@ -39,7 +57,7 @@ Preconditions:
 - `voltexa-api.jar` on the server classpath
   (`--patch-module java.base=<abs-path>/voltexa-api.jar`
   `--add-exports java.base/com.voltexastudios.voltexa.api=ALL-UNNAMED`)
-- `voltexa.jar` and `bank-0.1.0.jar` in `plugins/`
+- `voltexa.jar` and `bank.jar` in `plugins/`
 
 Steps and pass criteria:
 
@@ -50,32 +68,43 @@ Steps and pass criteria:
      `applied migration 2 (bank_transactions) for bank`,
      `applied migration 3 (bank_transactions_account_index) for bank`
    - [ ] Log contains
-     `Bank 0.1.0 enabled (contract) - VoltexaAPI 0.1.0 resolved, 3 bank migration(s) applied.`
+     `Bank 2026.46 enabled - VoltexaAPI 0.1.0 resolved, 3 bank migration(s) applied, coins currency`
    - [ ] No plugin-related errors or stack traces
 2. **Load order** — verify in the log that `Voltexa` enabled before `Bank`.
    - [ ] `depend: [Voltexa]` enforced by the server
-3. **Migration evidence**
-   - [ ] `/voltexa status` reports `migrations: 4 applied`
-     (1 core + 3 bank)
-   - [ ] `schema_migrations` holds rows for owner `bank` versions 1–3
-     and owner `core` version 1
-   - [ ] `bank_accounts` and `bank_transactions` exist in the H2 file
-     (inspect with the H2 shell or a JDBC check; use the base name
-     without the `.mv.db` suffix in the URL — H2 appends the suffix
-     itself, exactly like the core's `H2FileProvider`)
-4. **Disable path** — stop the server. (Paper 26.3 removed the `/plugin`
+3. **Hard depend** — restart the server with `voltexa.jar` removed from
+   `plugins/` (Bank only).
+   - [ ] The server reports
+     `UnknownDependencyException: Unknown/missing dependency plugins: [Voltexa]`
+     and does **not** load `Bank`
+   - [ ] Restore `voltexa.jar` before continuing
+4. **Command wiring** (console, which has all permissions):
+   - [ ] `/bank` → `Only players can check their own balance (use /bank balance <player>).`
+   - [ ] `/bank accounts` → `No bank accounts yet.` (on a fresh DB)
+   - [ ] `/bank deposit 100` → `Only players can deposit.`
+   - [ ] `/bank bogus` → `Unknown subcommand: bogus (use balance, deposit, withdraw, accounts)`
+5. **Read path + data persistence** — seed the H2 file with a test account
+   (e.g. `Steve`, balance `120`, a `DEPOSIT 200 → 200` and a
+   `WITHDRAW 80 → 120` ledger row) while the server is stopped, then start
+   the server.
+   - [ ] No bank migration is re-applied (no new
+     `applied migration … for bank` lines)
+   - [ ] `/bank accounts` → `#1 Steve: 120 coins` (the seeded balance reads
+     back through the plugin)
+   - [ ] The `Bank 2026.46 enabled` line appears again (3 bank migrations
+     reported from the recorded state)
+
+   A live player deposit/withdraw is not exercised headlessly; that path is
+   covered by `BankServiceTest` (stage 1) against the real H2 driver, and the
+   command wiring above proves the console/OP and player-only routing.
+6. **Disable path** — stop the server. (Paper 26.3 removed the `/plugin`
    command, so the disable path is the server shutdown; the plugin's
    `onDisable` must log `Bank disabled.` cleanly.)
    - [ ] Log contains `Bank disabled.` and the server stays stable
-5. **Re-enable** — start the server again.
-   - [ ] No bank migration is re-applied (no new
-     `applied migration … for bank` lines)
-   - [ ] The enable line from step 1 appears again (3 bank migrations
-     reported from the recorded state)
-   - [ ] `/voltexa status` still reports `migrations: 4 applied`
 
-Record the server log (enable line, applied-migration lines, status
-exchange, disable line) as evidence on the QA task.
+Record the server log (enable line, applied-migration lines, the
+hard-dependency error, the command responses, the seeded read-back, and the
+disable line) as evidence on the QA task.
 
 ## Regression notes
 
@@ -85,3 +114,6 @@ exchange, disable line) as evidence on the QA task.
 - Adding a Bank migration: append a new file with the next version number
   (never edit or remove an applied file); re-run both stages and verify the
   new migration applies once and is recorded under owner `bank`.
+- Changing a `BankConfig` default: the `bank.*` keys are read with defaults
+  (`currency-name`, `starting-balance`, `max-balance`, `min-transaction`);
+  re-run stage 1 and confirm the enable line reports the expected currency.

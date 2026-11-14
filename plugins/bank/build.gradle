@@ -1,13 +1,20 @@
-// bank - first VoltexaStudios feature plugin (placeholder for now).
-// Compiles against the voltexa-api artifact; feature work (accounts,
-// deposit/withdraw, /bank commands) lands in a follow-up issue.
+// bank - first VoltexaStudios feature plugin (v1: accounts, deposit/withdraw,
+// /bank balance). Compiles against the voltexa-api artifact; it ships no
+// duplicate shared code and never touches the JDBC driver, database URL, or
+// pool directly.
 
 dependencies {
     api project(':core:api')
     compileOnly paperApi
     testImplementation paperApi
+    // The unit tests exercise the real H2 driver (in-memory) for the domain
+    // logic, matching the core's test setup.
+    testImplementation 'com.h2database:h2:2.3.232'
 }
 
 jar {
     archiveBaseName = 'bank'
+    // Deployed as-is on servers: the artifact is exactly bank.jar (the
+    // version lives in plugin.yml, not the file name), matching voltexa.jar.
+    archiveVersion = ''
 }
