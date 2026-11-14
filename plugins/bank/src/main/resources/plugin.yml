@@ -1,0 +1,7 @@
+name: Bank
+version: 0.1.0
+main: com.voltexastudios.bank.BankPlugin
+api-version: '1.21'
+description: VoltexaStudios bank plugin (placeholder - feature work lands in a follow-up issue).
+author: VoltexaStudios
+depend: [Voltexa]

@@ -1,0 +1,13 @@
+// bank - first VoltexaStudios feature plugin (placeholder for now).
+// Compiles against the voltexa-api artifact; feature work (accounts,
+// deposit/withdraw, /bank commands) lands in a follow-up issue.
+
+dependencies {
+    api project(':core:api')
+    compileOnly paperApi
+    testImplementation paperApi
+}
+
+jar {
+    archiveBaseName = 'bank'
+}
