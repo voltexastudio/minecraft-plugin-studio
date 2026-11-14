@@ -1,0 +1,10 @@
+# Voltexa core configuration.
+database:
+  # Database backend. v1 ships h2-file (embedded, file-based, zero-config).
+  # MySQL/PostgreSQL backends can be selected here in a later version.
+  provider: h2-file
+  # Database file base name, relative to the plugin data folder. H2 appends
+  # ".mv.db" itself, so this produces <data-folder>/voltexa.mv.db.
+  path: voltexa
+  # Maximum pooled connections.
+  pool-size: 5

@@ -1,0 +1,27 @@
+// voltexa - the Voltexa core Paper plugin (shared infrastructure).
+// H2 is shaded into the jar so the plugin is self-contained on any server;
+// no plugin.yml `libraries:` download is needed at runtime.
+
+configurations {
+    shade
+}
+
+dependencies {
+    api project(':core:api')
+    compileOnly paperApi
+    shade 'com.h2database:h2:2.3.232'
+    testImplementation paperApi
+    // The unit tests exercise the real H2 driver (in-memory + file).
+    testImplementation 'com.h2database:h2:2.3.232'
+}
+
+jar {
+    archiveBaseName = 'voltexa'
+    // Deployed as-is on servers: the artifact is exactly voltexa.jar
+    // (the version lives in plugin.yml, not the file name).
+    archiveVersion = ''
+    from {
+        configurations.shade.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
+}

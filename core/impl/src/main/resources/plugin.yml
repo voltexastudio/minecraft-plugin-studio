@@ -1,0 +1,10 @@
+name: Voltexa
+version: 0.1.0
+main: com.voltexastudios.voltexa.VoltexaPlugin
+api-version: '1.21'
+description: Voltexa core - shared infrastructure (H2 database, versioned migrations, config, logging, typed API) for VoltexaStudios plugins.
+author: VoltexaStudios
+commands:
+  voltexa:
+    description: Voltexa core status and version.
+    usage: /voltexa <status|version>
