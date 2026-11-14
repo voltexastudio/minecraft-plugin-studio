@@ -2,16 +2,20 @@
 
 ## Language and platform
 
-- **Java 21**, built with **Gradle** (Maven acceptable with Lead sign-off).
-- Target server API: **Paper** (`paper-api`), pinned per plugin in `build.gradle`.
-  The QA test server runs the matching Paper version (currently **1.21.4**).
+- **Java 25**, built with **Gradle** (Maven acceptable with Lead sign-off).
+- Target server API: **Paper** (`paper-api`), pinned in the root `build.gradle`.
+  The QA test server runs the matching Paper version (currently **26.3-251**).
 - No NMS (Netty/Minecraft-internal) access in the first increment. If a feature
   requires it, propose it in a comment on the task before coding.
 
 ## Naming and layout
 
-- Package root: `com.voltxesa.<plugin>` (e.g. `com.voltxesa.hellovoltexa`).
-- One Gradle module per plugin under `plugins/<plugin-name>/`.
+- Package root: `com.voltexastudios.<plugin>` (e.g. `com.voltexastudios.bank`).
+- One Gradle module per plugin under `plugins/<plugin-name>/`; core modules live
+  under `core/` (`core:api` → `voltexa-api.jar`, `core:impl` → `voltexa.jar`).
+- Feature plugins declare `depend: [Voltexa]` in `plugin.yml` and compile
+  against the `voltexa-api` artifact (interfaces only). No feature ships
+  duplicate shared code.
 - `plugin.yml` lives in `src/main/resources/`; the `main` entry must match the
   actual main class (enforced by the unit smoke test).
 - Config profiles live in `configs/<profile-name>/` and are never edited in place

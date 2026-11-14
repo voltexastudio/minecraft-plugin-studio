@@ -7,46 +7,53 @@ server configuration profiles.
 
 ```
 .
-├── plugins/                    # one directory per plugin
-│   └── hello-voltexa/          # studio skeleton plugin (first increment)
-│       ├── build.gradle        # Gradle build (JDK 21 toolchain)
-│       └── src/
-│           ├── main/java/com/voltxesa/hellovoltexa/
-│           └── main/resources/plugin.yml
-├── configs/                    # versioned server config profiles
-│   └── baseline/               # QA baseline profile (Paper 1.21.4)
-│       ├── README.md           # profile documentation (required for every profile)
-│       ├── paper.yml           # partial profile — pins only documented settings
+├── settings.gradle / build.gradle   # root: one multi-project Gradle build
+├── gradlew                          # committed Gradle wrapper (9.3.0)
+├── core/
+│   ├── api/                         # voltexa-api.jar - typed service contracts (interfaces only)
+│   └── impl/                        # voltexa.jar - the Voltexa core Paper plugin
+├── plugins/
+│   ├── bank/                        # first feature plugin (placeholder, depend: [Voltexa])
+│   └── hello-voltexa/               # studio skeleton demo
+├── configs/
+│   └── baseline/                    # QA baseline profile (Paper 26.3-251)
+│       ├── README.md                # profile documentation (required for every profile)
+│       ├── paper.yml                # partial profile - pins only documented settings
 │       ├── server.properties
 │       ├── eula.txt
 │       └── world/world.properties
 └── docs/
-    ├── README.md               # this file
+    ├── README.md                    # this file
     ├── CODING-STANDARDS.md
     ├── RELEASE.md
-    └── plugins/<plugin>/       # per-plugin README + TESTPLAN (required)
+    └── plugins/<plugin>/            # per-plugin README + TESTPLAN (required)
 ```
 
 ## Toolchain
 
-- **JDK 21** (toolchain is declared in each plugin's `build.gradle`)
-- **Gradle 8.5+** (or a Gradle wrapper once one is committed)
-- **Paper 1.21.4** for the QA test server (matches the pinned `paper-api` version)
+- **JDK 25** (toolchain is declared in the root `build.gradle`)
+- **Gradle wrapper 9.3.0** (committed; `./gradlew build` from the repo root)
+- **Paper 26.3-251** for the QA test server (matches the pinned `paper-api`
+  version `26.3.build.251-stable`)
 
 ## Building a plugin
 
 ```bash
-cd plugins/hello-voltexa
-gradle build        # compiles, runs unit smoke tests, produces build/libs/hello-voltexa-0.1.0.jar
+./gradlew build        # from the repo root - compiles all modules, runs unit tests
 ```
+
+Module artifacts: `core/api/build/libs/voltexa-api.jar`,
+`core/impl/build/libs/voltexa.jar`,
+`plugins/<plugin>/build/libs/<plugin>-<version>.jar`.
 
 ## Testing a plugin
 
 Every plugin change ships with a test plan in `docs/plugins/<plugin>/TESTPLAN.md`.
 The standard two-stage smoke test:
 
-1. **Unit stage:** `gradle test` — descriptor/main-class consistency checks (no server needed).
-2. **Server stage:** load the built jar on a Paper test server running the
+1. **Unit stage:** `./gradlew :<module>:test` (or `./gradlew build`) —
+   descriptor/main-class consistency checks (no server needed).
+2. **Server stage:** load the built jar on the Paper test server running the
    `baseline` config profile, following the plugin's TESTPLAN.
 
 ## Config profiles
