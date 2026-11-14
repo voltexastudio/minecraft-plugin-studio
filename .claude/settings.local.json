@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(/home/paperclip/.paperclip/instances/default/companies/8da29206-1938-4dd7-a077-32279ad2d8d1/studio/minecraft-plugin-studio/scripts/paperclip-issue-update.sh:*)",
+      "Bash(/home/paperclip/.paperclip/instances/default/companies/8da29206-1938-4dd7-a077-32279ad2d8d1/studio/minecraft-plugin-studio/scripts/paperclip:*)",
+      "Bash(curl:*)",
+      "Bash(env)",
+      "Bash(env:*)"
+    ],
+    "additionalDirectories": [
+      "/home/paperclip/.paperclip/instances/default/companies/8da29206-1938-4dd7-a077-32279ad2d8d1",
+      "/home/paperclip/.paperclip/instances/default/companies/8da29206-1938-4dd7-a077-32279ad2d8d1/acp-engine/agents/fedfeca2-d156-4efb-8b06-b2d34889f83f",
+      "/home/paperclip/.paperclip/instances/default/workspaces/fedfeca2-d156-4efb-8b06-b2d34889f83f"
+    ],
+    "defaultMode": "default"
+  }
+}

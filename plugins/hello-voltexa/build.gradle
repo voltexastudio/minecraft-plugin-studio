@@ -1,0 +1,36 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.voltxesa'
+version = '0.1.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'papermc'
+        url = 'https://repo.papermc.io/repository/maven-public/'
+    }
+}
+
+dependencies {
+    // Pinned to the Paper version the QA test server runs (see configs/baseline/README.md).
+    compileOnly 'io.papermc.paper:paper-api:1.21.4-R1.1-SNAPSHOT'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testImplementation 'org.yaml:snakeyaml:2.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+jar {
+    archiveBaseName = 'hello-voltexa'
+}

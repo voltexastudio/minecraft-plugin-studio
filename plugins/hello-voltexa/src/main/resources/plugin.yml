@@ -1,0 +1,10 @@
+name: HelloVoltexa
+version: 0.1.0
+main: com.voltxesa.hellovoltexa.HelloVoltexaPlugin
+api-version: '1.21'
+description: VoltexaStudios studio skeleton plugin - proves the build and load pipeline.
+author: VoltexaStudios
+commands:
+  voltexa:
+    description: Studio skeleton smoke command.
+    usage: /voltexa

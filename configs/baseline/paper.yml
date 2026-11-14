@@ -1,0 +1,25 @@
+# VoltexaStudios baseline paper.yml
+# Target: Paper 1.21.4
+#
+# PARTIAL profile: settings not listed here fall back to Paper 1.21.4
+# defaults. Only settings the studio pins for QA reproducibility are listed,
+# each with a comment. Do not paste a full generated paper.yml here — keep
+# this file small and reviewable. See README.md for the full documentation.
+
+settings:
+  # Deterministic QA baseline: no proxy/bungee in the test environment.
+  bungee-cord: false
+  # Keep native transport off so the test server behaves identically across machines.
+  allow-native-transport: false
+  # Pin the luck formula explicitly so a Paper default change is visible in review.
+  use-alternative-luck-formula: true
+
+chunk-system:
+  # Fixed view distance so chunk-generation cost is reproducible between runs.
+  view-distance: 10
+  # Default Paper chunk loading, pinned explicitly for the same reason.
+  loader-per-tick: -1
+
+performance:
+  # Standard tick-budget warning threshold; QA checks the log for violations.
+  max-tick-time: 50

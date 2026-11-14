@@ -1,0 +1,3 @@
+# Required by vanilla server startup. The QA test server is internal;
+# accepting the EULA for an internal test server is the studio's decision.
+eula=true
